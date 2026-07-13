@@ -1,11 +1,16 @@
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { getDashboardDataService } from '@/services/dashboard.service'
+import { getDashboardDataService, getDashboardChartsDataService } from '@/services/dashboard.service'
 import { ACTIVITY_ACTIONS } from '@/constants'
 import { formatDistanceToNow } from 'date-fns'
 import { db } from '@/lib/db'
 
 import { Pagination } from '@/components/ui/pagination'
+import { DateFilter } from '@/components/dashboard/date-filter'
+import { ExpensePieChart } from '@/components/dashboard/expense-pie-chart'
+import { ExpenseBarChart } from '@/components/dashboard/expense-bar-chart'
+import { ActivitySearch } from '@/components/dashboard/activity-search'
+import { Suspense } from 'react'
 
 export default async function DashboardPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined }
@@ -22,14 +27,18 @@ export default async function DashboardPage(props: {
   const searchParams = props.searchParams ? await Promise.resolve(props.searchParams) : undefined
   const page = Number(searchParams?.page) || 1
   const limit = 10
+  const filter = String(searchParams?.filter || 'this_month')
+  const search = String(searchParams?.search || '')
 
-  const { youOwe, youAreOwed, totalBalance, recentActivity, totalActivities } = await getDashboardDataService(page, limit)
+  const { youOwe, youAreOwed, totalBalance, recentActivity, totalActivities } = await getDashboardDataService(page, limit, search)
+  const { pieChartData, barChartData } = await getDashboardChartsDataService(filter)
   const totalPages = Math.ceil((totalActivities || 0) / limit)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+        <DateFilter />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -66,10 +75,20 @@ export default async function DashboardPage(props: {
         </div>
       </div>
 
+      <div className="grid gap-6 md:grid-cols-2">
+        <ExpensePieChart data={pieChartData} currency={defaultCurrency} />
+        <ExpenseBarChart data={barChartData} currency={defaultCurrency} />
+      </div>
+
       <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="flex flex-col space-y-1.5 p-6 border-b border-border">
-          <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
-          <p className="text-sm text-muted-foreground">Your recent group transactions</p>
+        <div className="flex flex-col space-y-4 p-6 border-b border-border">
+          <div className="flex flex-col space-y-1.5">
+            <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
+            <p className="text-sm text-muted-foreground">Your recent group transactions</p>
+          </div>
+          <Suspense fallback={<div className="h-10 w-full bg-muted rounded-md animate-pulse"></div>}>
+            <ActivitySearch />
+          </Suspense>
         </div>
         <div className="divide-y divide-border">
           {recentActivity.length === 0 ? (
