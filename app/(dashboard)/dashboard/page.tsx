@@ -1,8 +1,24 @@
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { getDashboardDataService } from '@/services/dashboard.service'
+import { ACTIVITY_ACTIONS } from '@/constants'
+import { formatDistanceToNow } from 'date-fns'
 
-export default async function DashboardPage() {
+import { Pagination } from '@/components/ui/pagination'
+
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined }
+}) {
   const session = await auth.api.getSession({ headers: await headers() })
+  
+  if (!session?.user) return null
+
+  const searchParams = props.searchParams ? await Promise.resolve(props.searchParams) : undefined
+  const page = Number(searchParams?.page) || 1
+  const limit = 10
+
+  const { youOwe, youAreOwed, totalBalance, recentActivity, totalActivities } = await getDashboardDataService(page, limit)
+  const totalPages = Math.ceil((totalActivities || 0) / limit)
 
   return (
     <div className="space-y-6">
@@ -15,9 +31,11 @@ export default async function DashboardPage() {
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium">Total Balance</h3>
           </div>
-          <div className="text-2xl font-bold">$0.00</div>
+          <div className={`text-2xl font-bold ${totalBalance > 0 ? 'text-emerald-600 dark:text-emerald-500' : totalBalance < 0 ? 'text-destructive' : ''}`}>
+            ${Math.abs(totalBalance).toFixed(2)}
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
-            You are completely settled up.
+            {totalBalance === 0 ? 'You are completely settled up.' : totalBalance > 0 ? 'You are owed overall.' : 'You owe overall.'}
           </p>
         </div>
         
@@ -25,9 +43,9 @@ export default async function DashboardPage() {
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium text-destructive">You Owe</h3>
           </div>
-          <div className="text-2xl font-bold text-destructive">$0.00</div>
+          <div className="text-2xl font-bold text-destructive">${youOwe.toFixed(2)}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Nothing owed to others.
+            {youOwe === 0 ? 'Nothing owed to others.' : 'Total outstanding debt.'}
           </p>
         </div>
 
@@ -35,21 +53,57 @@ export default async function DashboardPage() {
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium text-emerald-600 dark:text-emerald-500">You Are Owed</h3>
           </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">$0.00</div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">${youAreOwed.toFixed(2)}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            No pending collections.
+            {youAreOwed === 0 ? 'No pending collections.' : 'Total expected to receive.'}
           </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="flex flex-col space-y-1.5 p-6 border-b border-border">
           <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
           <p className="text-sm text-muted-foreground">Your recent group transactions</p>
         </div>
-        <div className="p-6 text-center text-muted-foreground py-12 text-sm">
-          No recent activity to show.
+        <div className="divide-y divide-border">
+          {recentActivity.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground py-12 text-sm">
+              No recent activity to show.
+            </div>
+          ) : (
+            recentActivity.map((activity: any) => (
+              <div key={activity.id} className="p-6 flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold uppercase">
+                  {activity.user.name?.[0] || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold">{activity.user.name}</span>{' '}
+                    {activity.details}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                    </span>
+                    {activity.group && (
+                      <>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs font-medium text-primary">
+                          {activity.group.name}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-border flex justify-center pb-6">
+            <Pagination totalPages={totalPages} currentPage={page} />
+          </div>
+        )}
       </div>
     </div>
   )

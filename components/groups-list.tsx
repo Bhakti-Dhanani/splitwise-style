@@ -2,13 +2,7 @@
 
 import Link from 'next/link'
 import { Users, ArrowRight } from 'lucide-react'
-
-interface Group {
-  id: string
-  name: string
-  description: string | null
-  createdAt: Date
-}
+import { Group } from '@/types'
 
 export default function GroupsList({ groups }: { groups: Group[] }) {
   return (
@@ -48,7 +42,7 @@ export default function GroupsList({ groups }: { groups: Group[] }) {
                   </span>
                 </div>
                 <div className="flex items-center text-xs font-medium text-muted-foreground">
-                  <span>{new Date(group.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <span>{group.createdAt ? new Date(group.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
                   <ArrowRight className="w-4 h-4 ml-2 text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                 </div>
               </div>

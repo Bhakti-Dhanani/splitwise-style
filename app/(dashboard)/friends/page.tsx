@@ -1,9 +1,10 @@
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { UserPlus, User } from 'lucide-react'
-import { getFriends } from '@/app/actions/friends'
+import { UserPlus, User as UserIcon } from 'lucide-react'
+import { getFriendsService } from '@/services/friend.service'
 import AddFriendDialog from '@/components/add-friend-dialog'
+import { User } from '@/types'
 
 export default async function FriendsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -12,7 +13,7 @@ export default async function FriendsPage() {
     redirect('/sign-in')
   }
 
-  const friends = await getFriends()
+  const friends = await getFriendsService(session.user.id)
 
   return (
     <div className="space-y-6">
@@ -50,7 +51,7 @@ export default async function FriendsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {friends.map((friend: any) => (
-            <div key={friend.id} className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+            <div key={friend?.id} className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
               <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 {friend.image ? (
                   <img src={friend.image} alt={friend.name} className="w-12 h-12 rounded-full object-cover" />

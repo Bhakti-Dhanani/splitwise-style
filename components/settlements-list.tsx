@@ -1,18 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { markSettled } from '@/app/actions/expenses'
+import { markSettledService } from '@/services/expense.service'
 import { ArrowRight, Check, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-
-interface Settlement {
-  id: string
-  from: string
-  to: string
-  amount: string
-  settled: boolean
-  settledAt: Date | null
-}
+import { Settlement } from '@/types'
 
 export default function SettlementsList({
   settlements,
@@ -27,7 +19,7 @@ export default function SettlementsList({
   const handleMarkSettled = async (settlementId: string) => {
     setMarking(settlementId)
     try {
-      await markSettled(settlementId)
+      await markSettledService(settlementId)
       router.refresh()
     } catch (err) {
       console.error('Failed to mark settled:', err)
@@ -40,7 +32,7 @@ export default function SettlementsList({
   const settled = settlements.filter((s) => s.settled)
 
   const totalUnsettled = unsettled.reduce(
-    (sum, s) => sum + parseFloat(s.amount),
+    (sum, s) => sum + parseFloat(s.amount as string),
     0
   )
 
@@ -79,22 +71,22 @@ export default function SettlementsList({
                     <div className="flex items-center gap-3 flex-1">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-xs font-semibold text-primary">
-                          {settlement.from[0]?.toUpperCase()}
+                          {(settlement.userFrom?.name || settlement.userFrom?.email || settlement.from)[0]?.toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-muted-foreground">
                           <span className="font-medium text-foreground">
-                            {settlement.from}
+                            {settlement.userFrom?.name || settlement.userFrom?.email || settlement.from}
                           </span>{' '}
                           owes{' '}
                           <span className="font-medium text-foreground">
-                            {settlement.to}
+                            {settlement.userTo?.name || settlement.userTo?.email || settlement.to}
                           </span>
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-primary">
-                        ${parseFloat(settlement.amount).toFixed(2)}
+                        ${parseFloat(settlement.amount as string).toFixed(2)}
                       </span>
                     </div>
                     <button
@@ -131,16 +123,16 @@ export default function SettlementsList({
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-muted-foreground line-through">
                           <span className="font-medium text-foreground">
-                            {settlement.from}
+                            {settlement.userFrom?.name || settlement.userFrom?.email || settlement.from}
                           </span>{' '}
                           owes{' '}
                           <span className="font-medium text-foreground">
-                            {settlement.to}
+                            {settlement.userTo?.name || settlement.userTo?.email || settlement.to}
                           </span>
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-muted-foreground">
-                        ${parseFloat(settlement.amount).toFixed(2)}
+                        ${parseFloat(settlement.amount as string).toFixed(2)}
                       </span>
                     </div>
                     <span className="text-xs text-muted-foreground ml-4">
