@@ -36,6 +36,7 @@ export interface Expense {
 export interface Settlement {
   id: string
   amount: any
+  currency?: string
   from: string
   to: string
   settled: boolean | null

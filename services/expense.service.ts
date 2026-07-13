@@ -17,7 +17,7 @@ async function getUserId() {
 
 export async function createExpenseService(input: unknown) {
   const userId = await getUserId()
-  const { groupId, description, amount, splits } = createExpenseSchema.parse(input)
+  const { groupId, description, amount, date, category, currency, originalAmount, paidBy, splits } = createExpenseSchema.parse(input)
 
   const member = await db.groupMember.findFirst({
     where: { groupId, userId }
@@ -34,14 +34,18 @@ export async function createExpenseService(input: unknown) {
     throw new Error('Splits must sum to the total amount')
   }
 
-  const expense = await db.expense.create({
+  const expense = await (db.expense as any).create({
     data: {
       groupId,
-      paidBy: userId,
+      paidBy: paidBy || userId,
       description,
       amount: amount.toString(),
+      date: date ? new Date(date) : undefined,
+      category: category || 'General',
+      currency: currency || 'USD',
+      originalAmount: originalAmount ? originalAmount.toString() : undefined,
       splits: {
-        create: splits.map(s => ({
+        create: splits.map((s: any) => ({
           userId: s.userId,
           splitAmount: s.splitAmount.toString()
         }))
@@ -55,7 +59,7 @@ export async function createExpenseService(input: unknown) {
     userId,
     groupId,
     action: ACTIVITY_ACTIONS.EXPENSE_ADDED,
-    details: `Added expense "${description}" for $${amount}`,
+    details: `Added expense "${description}" for ${currency || 'USD'} ${originalAmount ? originalAmount.toString() : amount.toString()}`,
   })
 
   revalidatePath(`/groups/${groupId}`)
@@ -63,71 +67,81 @@ export async function createExpenseService(input: unknown) {
 }
 
 export async function editExpenseService(input: unknown) {
-  const userId = await getUserId()
-  const { id, description, amount, splits } = updateExpenseSchema.parse(input)
+  try {
+    const userId = await getUserId()
+    const { id, description, amount, date, category, currency, originalAmount, paidBy, splits } = updateExpenseSchema.parse(input)
 
-  const existingExpense = await db.expense.findUnique({
-    where: { id },
-    include: { group: true }
-  })
+    const existingExpense = await db.expense.findUnique({
+      where: { id },
+      include: { group: true }
+    })
 
-  if (!existingExpense) throw new Error('Expense not found')
+    if (!existingExpense) throw new Error('Expense not found')
 
-  const member = await db.groupMember.findFirst({
-    where: { groupId: existingExpense.groupId, userId }
-  })
+    const member = await db.groupMember.findFirst({
+      where: { groupId: existingExpense.groupId, userId }
+    })
 
-  if (!member) throw new Error('Not a member of this group')
+    if (!member) throw new Error('Not a member of this group')
 
-  if ((existingExpense as any).status === 'PAID') {
-    throw new Error('Cannot edit a paid expense')
-  }
-
-  if (existingExpense.paidBy !== userId && existingExpense.group.userId !== userId) {
-    throw new Error('Only the expense creator or group owner can edit this expense')
-  }
-
-  if (amount !== undefined && splits) {
-    const splitsTotal = splits.reduce(
-      (sum, split) => sum.plus(new Decimal(split.splitAmount)),
-      new Decimal(0)
-    )
-
-    if (!splitsTotal.equals(new Decimal(amount))) {
-      throw new Error('Splits must sum to the total amount')
+    if ((existingExpense as any).status === 'PAID') {
+      throw new Error('Cannot edit a paid expense')
     }
-  }
 
-  const updateData: any = {}
-  if (description !== undefined) updateData.description = description
-  if (amount !== undefined) updateData.amount = amount.toString()
-
-  if (splits) {
-    updateData.splits = {
-      deleteMany: {},
-      create: splits.map(s => ({
-        userId: s.userId,
-        splitAmount: s.splitAmount.toString()
-      }))
+    if (existingExpense.paidBy !== userId && existingExpense.group.userId !== userId) {
+      throw new Error('Only the expense creator or group owner can edit this expense')
     }
+
+    if (amount !== undefined && splits) {
+      const splitsTotal = splits.reduce(
+        (sum, split) => sum.plus(new Decimal(split.splitAmount)),
+        new Decimal(0)
+      )
+
+      if (!splitsTotal.equals(new Decimal(amount))) {
+        throw new Error(`Splits must sum to the total amount. Splits: ${splitsTotal}, Amount: ${amount}`)
+      }
+    }
+
+    const updateData: any = {}
+    if (description !== undefined) updateData.description = description
+    if (amount !== undefined) updateData.amount = amount.toString()
+    if (date !== undefined) updateData.date = new Date(date)
+    if (category !== undefined) updateData.category = category
+    if (currency !== undefined) updateData.currency = currency
+    if (originalAmount !== undefined) updateData.originalAmount = originalAmount.toString()
+    if (paidBy !== undefined) updateData.paidBy = paidBy
+
+    if (splits) {
+      updateData.splits = {
+        deleteMany: {},
+        create: splits.map(s => ({
+          userId: s.userId,
+          splitAmount: s.splitAmount.toString()
+        }))
+      }
+    }
+
+    const expense = await (db.expense as any).update({
+      where: { id },
+      data: updateData
+    })
+
+    await calculateSettlementsService(existingExpense.groupId)
+
+    await logActivityService({
+      userId,
+      groupId: existingExpense.groupId,
+      action: ACTIVITY_ACTIONS.EXPENSE_ADDED,
+      details: `Updated expense "${expense.description}"`,
+    })
+
+    revalidatePath(`/groups/${existingExpense.groupId}`)
+    return { success: true, id: expense.id }
+  } catch (error) {
+    console.error("EDIT EXPENSE ERROR:", error)
+    throw error
   }
-
-  const expense = await db.expense.update({
-    where: { id },
-    data: updateData
-  })
-
-  await calculateSettlementsService(existingExpense.groupId)
-
-  await logActivityService({
-    userId,
-    groupId: existingExpense.groupId,
-    action: ACTIVITY_ACTIONS.EXPENSE_ADDED,
-    details: `Updated expense "${expense.description}"`,
-  })
-
-  revalidatePath(`/groups/${existingExpense.groupId}`)
-  return { success: true, id: expense.id }
 }
 
 export async function getExpensesByGroupService(groupId: string) {
@@ -193,90 +207,77 @@ export async function calculateSettlementsService(groupId: string) {
   })
 
   const userIds = members.map((m: { userId: string }) => m.userId)
-  const balances: { [key: string]: Decimal } = {}
 
-  for (const userId of userIds) {
-    balances[userId] = new Decimal(0)
-  }
-
-  const paidAmounts = await db.expense.groupBy({
-    by: ['paidBy'],
-    where: { groupId },
-    _sum: { amount: true }
+  const expenses = await db.expense.findMany({
+    where: { groupId, status: 'PENDING' },
+    include: { splits: true }
   })
 
-  for (const { paidBy, _sum } of paidAmounts) {
-    if (balances[paidBy] !== undefined && _sum.amount !== null) {
-      balances[paidBy] = balances[paidBy].plus(new Decimal(_sum.amount.toString()))
-    }
-  }
-
-  const groupExpenses = await db.expense.findMany({
-    where: { groupId },
-    select: { id: true }
-  })
-  
-  const expenseIds = groupExpenses.map((e: { id: string }) => e.id)
-
-  if (expenseIds.length > 0) {
-    const owedAmounts = await db.expenseSplit.groupBy({
-      by: ['userId'],
-      where: { expenseId: { in: expenseIds } },
-      _sum: { splitAmount: true }
-    })
-
-    for (const { userId, _sum } of owedAmounts) {
-      if (balances[userId] !== undefined && _sum.splitAmount !== null) {
-        balances[userId] = balances[userId].minus(new Decimal(_sum.splitAmount.toString()))
-      }
-    }
-  }
+  const currencies = [...new Set(expenses.map((e: any) => e.currency))]
 
   await db.settlement.deleteMany({
     where: { groupId }
   })
 
-  const debtors = Object.entries(balances)
-    .filter(([_, balance]) => balance.lessThan(0))
-    .sort((a, b) => a[1].comparedTo(b[1]))
+  for (const currency of currencies) {
+    const currencyExpenses = expenses.filter((e: any) => e.currency === currency)
 
-  const creditors = Object.entries(balances)
-    .filter(([_, balance]) => balance.greaterThan(0))
-    .sort((a, b) => b[1].comparedTo(a[1]))
-
-  let debtorIndex = 0
-  let creditorIndex = 0
-  let debtorRemaining = debtors[0]?.[1].negated() || new Decimal(0)
-  let creditorRemaining = creditors[0]?.[1] || new Decimal(0)
-
-  while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
-    const [debtor] = debtors[debtorIndex]
-    const [creditor] = creditors[creditorIndex]
-
-    const settlement = Decimal.min(debtorRemaining, creditorRemaining)
-
-    if (settlement.greaterThan(0)) {
-      await db.settlement.create({
-        data: {
-          groupId,
-          from: debtor,
-          to: creditor,
-          amount: settlement.toString(),
-        }
-      })
+    const balances: { [key: string]: Decimal } = {}
+    for (const userId of userIds) {
+      balances[userId] = new Decimal(0)
     }
 
-    debtorRemaining = debtorRemaining.minus(settlement)
-    creditorRemaining = creditorRemaining.minus(settlement)
+    for (const expense of currencyExpenses) {
+      balances[expense.paidBy] = balances[expense.paidBy].plus(new Decimal(expense.amount.toString()))
 
-    if (debtorRemaining.equals(0)) {
-      debtorIndex++
-      debtorRemaining = debtors[debtorIndex]?.[1].negated() || new Decimal(0)
+      for (const split of expense.splits) {
+        balances[split.userId] = balances[split.userId].minus(new Decimal(split.splitAmount.toString()))
+      }
     }
 
-    if (creditorRemaining.equals(0)) {
-      creditorIndex++
-      creditorRemaining = creditors[creditorIndex]?.[1] || new Decimal(0)
+    const debtors = Object.entries(balances)
+      .filter(([_, balance]) => balance.lessThan(0))
+      .sort((a, b) => a[1].comparedTo(b[1]))
+
+    const creditors = Object.entries(balances)
+      .filter(([_, balance]) => balance.greaterThan(0))
+      .sort((a, b) => b[1].comparedTo(a[1]))
+
+    let debtorIndex = 0
+    let creditorIndex = 0
+    let debtorRemaining = debtors[0]?.[1].negated() || new Decimal(0)
+    let creditorRemaining = creditors[0]?.[1] || new Decimal(0)
+
+    while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+      const [debtor] = debtors[debtorIndex]
+      const [creditor] = creditors[creditorIndex]
+
+      const settlement = Decimal.min(debtorRemaining, creditorRemaining)
+
+      if (settlement.greaterThan(0)) {
+        await db.settlement.create({
+          data: {
+            groupId,
+            from: debtor,
+            to: creditor,
+            amount: settlement.toString(),
+            currency: currency,
+          }
+        })
+      }
+
+      debtorRemaining = debtorRemaining.minus(settlement)
+      creditorRemaining = creditorRemaining.minus(settlement)
+
+      if (debtorRemaining.equals(0)) {
+        debtorIndex++
+        debtorRemaining = debtors[debtorIndex]?.[1].negated() || new Decimal(0)
+      }
+
+      if (creditorRemaining.equals(0)) {
+        creditorIndex++
+        creditorRemaining = creditors[creditorIndex]?.[1] || new Decimal(0)
+      }
     }
   }
 }
@@ -308,6 +309,9 @@ export async function markSettledService(settlementId: string) {
     include: { userTo: true }
   })
 
+  const user = await db.user.findUnique({ where: { id: userId } })
+  const currency = (user as any)?.defaultCurrency || 'USD'
+
   if (result) {
     const expensesToUpdate = await (db.expense as any).findMany({
       where: {
@@ -331,9 +335,11 @@ export async function markSettledService(settlementId: string) {
       userId,
       groupId: result.groupId,
       action: ACTIVITY_ACTIONS.SETTLEMENT_COMPLETED,
-      details: `Settled a debt of $${result.amount} to ${result.userTo?.name || 'user'}`,
+      details: `Settled a debt of ${currency} ${result.amount} to ${result.userTo?.name || 'user'}`,
     })
   }
 
-  revalidatePath(`/groups`)
+  revalidatePath(`/groups/${result?.groupId || ''}`)
+  revalidatePath(`/dashboard`)
+  revalidatePath(`/activity`)
 }
