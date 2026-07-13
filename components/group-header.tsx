@@ -3,16 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { deleteGroup } from '@/app/actions/groups'
+import { deleteGroupService } from '@/services/group.service'
 import { ArrowLeft, Trash2, AlertCircle } from 'lucide-react'
+import { Group } from '@/types'
 
-interface Group {
-  id: string
-  name: string
-  description: string | null
-}
-
-export default function GroupHeader({ group }: { group: Group }) {
+export default function GroupHeader({ group, currentUserId }: { group: Group, currentUserId: string }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
@@ -20,7 +15,7 @@ export default function GroupHeader({ group }: { group: Group }) {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      await deleteGroup(group.id)
+      await deleteGroupService(group.id)
       router.push('/groups')
     } catch (error) {
       console.error('Failed to delete group:', error)
@@ -48,15 +43,17 @@ export default function GroupHeader({ group }: { group: Group }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="inline-flex items-center gap-2 p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive border border-transparent hover:border-destructive/20"
-          >
-            <Trash2 className="w-5 h-5" />
-            <span className="text-sm font-medium hidden sm:inline-block">Delete</span>
-          </button>
-        </div>
+        {currentUserId === group.userId && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="inline-flex items-center gap-2 p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive border border-transparent hover:border-destructive/20"
+            >
+              <Trash2 className="w-5 h-5" />
+              <span className="text-sm font-medium hidden sm:inline-block">Delete</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {showDeleteConfirm && (

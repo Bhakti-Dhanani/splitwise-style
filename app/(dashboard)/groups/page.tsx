@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { getGroups } from '@/app/actions/groups'
+import { getGroupsService } from '@/services/group.service'
 import GroupsList from '@/components/groups-list'
 import CreateGroupDialog from '@/components/create-group-dialog'
 import { Plus } from 'lucide-react'
@@ -13,7 +13,7 @@ export default async function GroupsPage() {
     redirect('/sign-in')
   }
 
-  const groups = await getGroups()
+  const groups = await getGroupsService(session.user.id)
 
   return (
     <div className="space-y-6">

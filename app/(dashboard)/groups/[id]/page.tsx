@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { getGroupById, getGroupMembers } from '@/app/actions/groups'
-import { getExpensesByGroup, getGroupSettlements } from '@/app/actions/expenses'
+import { getGroupByIdService, getGroupMembersService } from '@/services/group.service'
+import { getExpensesByGroupService, getGroupSettlementsService } from '@/services/expense.service'
 import GroupHeader from '@/components/group-header'
 import GroupMembers from '@/components/group-members'
 import ExpensesList from '@/components/expenses-list'
@@ -21,15 +21,29 @@ export default async function GroupDetailPage({
     redirect('/sign-in')
   }
 
-  const group = await getGroupById(id)
-  const members = await getGroupMembers(id)
-  const expenses = await getExpensesByGroup(id)
-  const settlements = await getGroupSettlements(id)
+  const group = await getGroupByIdService(id, session.user.id)
+  const members = await getGroupMembersService(id)
+  const expenses = await getExpensesByGroupService(id)
+  const settlements = await getGroupSettlementsService(id)
+
+  const safeExpenses = expenses.map(e => ({
+    ...e,
+    amount: e.amount.toString(),
+    splits: e.splits.map(s => ({
+      ...s,
+      splitAmount: s.splitAmount.toString()
+    }))
+  }))
+
+  const safeSettlements = settlements.map(s => ({
+    ...s,
+    amount: s.amount.toString()
+  }))
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <GroupHeader group={group} />
+      <GroupHeader group={group} currentUserId={session.user.id} />
 
       {/* Content */}
       <div>
@@ -41,16 +55,27 @@ export default async function GroupDetailPage({
           </TabsList>
 
           <TabsContent value="expenses" className="space-y-6">
-            <ExpensesList groupId={id} expenses={expenses} members={members} />
+            <ExpensesList 
+              groupId={id} 
+              expenses={safeExpenses} 
+              members={members} 
+              currentUserId={session.user.id}
+              groupOwnerId={group.userId}
+            />
           </TabsContent>
 
           <TabsContent value="members" className="space-y-6">
-            <GroupMembers groupId={id} members={members} />
+            <GroupMembers 
+              groupId={id} 
+              members={members} 
+              currentUserId={session.user.id}
+              groupOwnerId={group.userId}
+            />
           </TabsContent>
 
           <TabsContent value="settlements" className="space-y-6">
             <SettlementsList
-              settlements={settlements}
+              settlements={safeSettlements}
               groupId={id}
             />
           </TabsContent>

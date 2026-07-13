@@ -1,22 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { addMemberToGroup, removeMemberFromGroup } from '@/app/actions/groups'
+import { addMemberToGroupService, removeMemberFromGroupService } from '@/services/group.service'
 import { Plus, X, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-
-interface Member {
-  id: string
-  userId: string
-  createdAt: Date
-}
+import { Member } from '@/types'
 
 export default function GroupMembers({
   groupId,
   members,
+  currentUserId,
+  groupOwnerId,
 }: {
   groupId: string
   members: Member[]
+  currentUserId: string
+  groupOwnerId: string
 }) {
   const [showAddForm, setShowAddForm] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -32,7 +31,7 @@ export default function GroupMembers({
     const userId = formData.get('userId') as string
 
     try {
-      await addMemberToGroup({ groupId, userId })
+      await addMemberToGroupService({ groupId, userId: userId })
       setShowAddForm(false)
       router.refresh()
     } catch (err) {
@@ -42,11 +41,16 @@ export default function GroupMembers({
     }
   }
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!confirm('Remove this member from the group?')) return
+  const handleRemoveMember = async (memberId: string, isSelf: boolean) => {
+    const msg = isSelf ? 'Are you sure you want to leave this group?' : 'Remove this member from the group?'
+    if (!confirm(msg)) return
     try {
-      await removeMemberFromGroup(groupId, memberId)
-      router.refresh()
+      await removeMemberFromGroupService(groupId, memberId)
+      if (isSelf) {
+        router.push('/groups')
+      } else {
+        router.refresh()
+      }
     } catch (err) {
       console.error('Failed to remove member:', err)
     }
@@ -61,13 +65,15 @@ export default function GroupMembers({
             {members.length} {members.length === 1 ? 'member' : 'members'} in this group
           </p>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          Add Member
-        </button>
+        {currentUserId === groupOwnerId && (
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Add Member
+          </button>
+        )}
       </div>
 
       {showAddForm && (
@@ -140,19 +146,23 @@ export default function GroupMembers({
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-foreground truncate">
-                    {member.userId}
+                    {member.user?.name || member.user?.email || member.userId}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Joined {new Date(member.createdAt).toLocaleDateString()}
+                  <p className="text-sm text-muted-foreground">
+                    {member.user?.email && member.user.name ? <span className="block mb-1">{member.user.email}</span> : null}
+                    Joined {member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'recently'}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleRemoveMember(member.userId)}
-                className="p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive ml-2"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {(currentUserId === groupOwnerId || currentUserId === member.userId) && (
+                <button
+                  onClick={() => handleRemoveMember(member.userId, currentUserId === member.userId)}
+                  className="p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive ml-2"
+                  title={currentUserId === member.userId ? 'Leave Group' : 'Remove Member'}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))}
         </div>

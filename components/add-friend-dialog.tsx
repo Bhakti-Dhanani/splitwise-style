@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { addFriend } from '@/app/actions/friends'
+import { addFriendService } from '@/services/friend.service'
 import { UserPlus, Loader2 } from 'lucide-react'
 
 export default function AddFriendDialog({ children }: { children: React.ReactNode }) {
@@ -33,7 +33,7 @@ export default function AddFriendDialog({ children }: { children: React.ReactNod
     }
 
     startTransition(async () => {
-      const result = await addFriend(email)
+      const result = await addFriendService(email)
 
       if (result.error) {
         setError(result.error)

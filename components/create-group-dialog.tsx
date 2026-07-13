@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createGroup } from '@/app/actions/groups'
+import { createGroupService } from '@/services/group.service'
 import { useRouter } from 'next/navigation'
 import { X, Loader2 } from 'lucide-react'
 
@@ -25,7 +25,7 @@ export default function CreateGroupDialog({
     const description = formData.get('description') as string
 
     try {
-      await createGroup({ name, description })
+      await createGroupService({ name, description })
       setOpen(false)
       router.refresh()
     } catch (err) {
