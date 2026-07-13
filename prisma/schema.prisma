@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  defaultCurrency String @default("USD")
+
+  sessions        Session[]
+  accounts        Account[]
+  groupMembers    GroupMember[]
+  groups          Group[]
+  expensesPaid    Expense[]
+  expenseSplits   ExpenseSplit[]
+  settlementsTo   Settlement[]   @relation("SettlementTo")
+  settlementsFrom Settlement[]   @relation("SettlementFrom")
+  friendships1    Friendship[]   @relation("Friend1")
+  friendships2    Friendship[]   @relation("Friend2")
+  activities      Activity[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  members     GroupMember[]
+  expenses    Expense[]
+  settlements Settlement[]
+  activities  Activity[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("group_members")
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy      String
+  user        User     @relation(fields: [paidBy], references: [id], onDelete: Cascade)
+  description    String
+  amount         Decimal  @db.Decimal(10, 2)
+  status         String   @default("PENDING")
+  date           DateTime @default(now())
+  category       String   @default("General")
+  currency       String   @default("USD")
+  originalAmount Decimal? @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  splits ExpenseSplit[]
+
+  @@map("expenses")
+}
+
+model ExpenseSplit {
+  id          String   @id @default(uuid())
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splitAmount Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  @@map("expense_splits")
+}
+
+model Settlement {
+  id        String    @id @default(uuid())
+  groupId   String
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  from      String
+  userFrom  User      @relation("SettlementFrom", fields: [from], references: [id], onDelete: Cascade)
+  to        String
+  userTo    User      @relation("SettlementTo", fields: [to], references: [id], onDelete: Cascade)
+  amount    Decimal   @db.Decimal(10, 2)
+  currency  String    @default("USD")
+  settled   Boolean?  @default(false)
+  settledAt DateTime?
+  status    String    @default("PENDING")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+
+  @@map("settlements")
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId1   String
+  user1     User     @relation("Friend1", fields: [userId1], references: [id], onDelete: Cascade)
+  userId2   String
+  user2     User     @relation("Friend2", fields: [userId2], references: [id], onDelete: Cascade)
+  status    String   @default("ACCEPTED")
+  createdAt DateTime @default(now())
+
+  @@unique([userId1, userId2])
+  @@map("friendships")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String?
+  group     Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+
+  @@map("activities")
+}
