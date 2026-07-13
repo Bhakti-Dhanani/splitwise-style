@@ -33,17 +33,17 @@ export default async function GroupDetailPage({
   const expenses = await getExpensesByGroupService(id)
   const settlements = await getGroupSettlementsService(id)
 
-  const safeExpenses = expenses.map(e => ({
+  const safeExpenses = expenses.map((e: any) => ({
     ...e,
     amount: e.amount.toString(),
     originalAmount: e.originalAmount ? e.originalAmount.toString() : null,
-    splits: e.splits.map(s => ({
+    splits: e.splits.map((s: any) => ({
       ...s,
       splitAmount: s.splitAmount.toString()
     }))
   }))
 
-  const safeSettlements = settlements.map(s => ({
+  const safeSettlements = settlements.map((s: any) => ({
     ...s,
     amount: s.amount.toString(),
     currency: (s as any).currency || 'USD'
