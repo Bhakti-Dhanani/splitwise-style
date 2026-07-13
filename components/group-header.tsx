@@ -30,33 +30,32 @@ export default function GroupHeader({ group }: { group: Group }) {
 
   return (
     <>
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/groups"
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">{group.name}</h1>
-                {group.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {group.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+      <div className="flex items-center justify-between pb-6">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/groups"
+            className="p-2 border border-border bg-card rounded-lg hover:bg-muted transition-colors shadow-sm"
+          >
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{group.name}</h1>
+            {group.description && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {group.description}
+              </p>
+            )}
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="inline-flex items-center gap-2 p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive border border-transparent hover:border-destructive/20"
+          >
+            <Trash2 className="w-5 h-5" />
+            <span className="text-sm font-medium hidden sm:inline-block">Delete</span>
+          </button>
         </div>
       </div>
 

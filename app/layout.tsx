@@ -1,10 +1,11 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
-  title: 'Fair Path - Expense Splitting Made Easy',
-  description: 'Fair Path is a modern expense splitting app that helps groups of friends and family settle shared expenses fairly and easily.',
+  title: 'Splitwise - Expense Splitting Made Easy',
+  description: 'Splitwise is a modern expense splitting app that helps groups of friends and family settle shared expenses fairly and easily.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -39,10 +40,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -24,6 +24,8 @@ model User {
   expenseSplits ExpenseSplit[] 
   settlementsTo   Settlement[] @relation("SettlementTo")
   settlementsFrom Settlement[] @relation("SettlementFrom")
+  friendships1    Friendship[] @relation("Friend1")
+  friendships2    Friendship[] @relation("Friend2")
 
   @@map("user")
 }
@@ -141,4 +143,17 @@ model Settlement {
   createdAt DateTime  @default(now())
 
   @@map("settlements")
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId1   String
+  user1     User     @relation("Friend1", fields: [userId1], references: [id], onDelete: Cascade)
+  userId2   String
+  user2     User     @relation("Friend2", fields: [userId2], references: [id], onDelete: Cascade)
+  status    String   @default("ACCEPTED")
+  createdAt DateTime @default(now())
+
+  @@unique([userId1, userId2])
+  @@map("friendships")
 }

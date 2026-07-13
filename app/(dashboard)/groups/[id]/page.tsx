@@ -12,26 +12,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 export default async function GroupDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session?.user) {
     redirect('/sign-in')
   }
 
-  const group = await getGroupById(params.id)
-  const members = await getGroupMembers(params.id)
-  const expenses = await getExpensesByGroup(params.id)
-  const settlements = await getGroupSettlements(params.id)
+  const group = await getGroupById(id)
+  const members = await getGroupMembers(id)
+  const expenses = await getExpensesByGroup(id)
+  const settlements = await getGroupSettlements(id)
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-background">
+    <div className="space-y-6">
       {/* Header */}
       <GroupHeader group={group} />
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         <Tabs defaultValue="expenses" className="space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-3 bg-card border border-border">
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
@@ -40,21 +41,21 @@ export default async function GroupDetailPage({
           </TabsList>
 
           <TabsContent value="expenses" className="space-y-6">
-            <ExpensesList groupId={params.id} expenses={expenses} members={members} />
+            <ExpensesList groupId={id} expenses={expenses} members={members} />
           </TabsContent>
 
           <TabsContent value="members" className="space-y-6">
-            <GroupMembers groupId={params.id} members={members} />
+            <GroupMembers groupId={id} members={members} />
           </TabsContent>
 
           <TabsContent value="settlements" className="space-y-6">
             <SettlementsList
               settlements={settlements}
-              groupId={params.id}
+              groupId={id}
             />
           </TabsContent>
         </Tabs>
       </div>
-    </main>
+    </div>
   )
 }

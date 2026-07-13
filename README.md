@@ -1,6 +1,6 @@
-# Fair Path - Expense Splitting App
+# Splitwise - Expense Splitting App
 
-Fair Path is a modern, beautiful expense splitting application built with Next.js, Neon PostgreSQL, Drizzle ORM, Better Auth, and Zod validators.
+Splitwise is a modern, beautiful expense splitting application built with Next.js, Neon PostgreSQL, Prisma, Better Auth, and Zod validators.
 
 ## Features
 
