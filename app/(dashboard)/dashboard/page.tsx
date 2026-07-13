@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { getDashboardDataService } from '@/services/dashboard.service'
 import { ACTIVITY_ACTIONS } from '@/constants'
 import { formatDistanceToNow } from 'date-fns'
+import { db } from '@/lib/db'
 
 import { Pagination } from '@/components/ui/pagination'
 
@@ -10,8 +11,13 @@ export default async function DashboardPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined }
 }) {
   const session = await auth.api.getSession({ headers: await headers() })
-  
+
   if (!session?.user) return null
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id }
+  })
+  const defaultCurrency = (user as any)?.defaultCurrency || 'USD'
 
   const searchParams = props.searchParams ? await Promise.resolve(props.searchParams) : undefined
   const page = Number(searchParams?.page) || 1
@@ -32,18 +38,18 @@ export default async function DashboardPage(props: {
             <h3 className="tracking-tight text-sm font-medium">Total Balance</h3>
           </div>
           <div className={`text-2xl font-bold ${totalBalance > 0 ? 'text-emerald-600 dark:text-emerald-500' : totalBalance < 0 ? 'text-destructive' : ''}`}>
-            ${Math.abs(totalBalance).toFixed(2)}
+            {defaultCurrency} {Math.abs(totalBalance).toFixed(2)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {totalBalance === 0 ? 'You are completely settled up.' : totalBalance > 0 ? 'You are owed overall.' : 'You owe overall.'}
           </p>
         </div>
-        
+
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium text-destructive">You Owe</h3>
           </div>
-          <div className="text-2xl font-bold text-destructive">${youOwe.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-destructive">{defaultCurrency} {youOwe.toFixed(2)}</div>
           <p className="text-xs text-muted-foreground mt-1">
             {youOwe === 0 ? 'Nothing owed to others.' : 'Total outstanding debt.'}
           </p>
@@ -53,7 +59,7 @@ export default async function DashboardPage(props: {
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium text-emerald-600 dark:text-emerald-500">You Are Owed</h3>
           </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">${youAreOwed.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">{defaultCurrency} {youAreOwed.toFixed(2)}</div>
           <p className="text-xs text-muted-foreground mt-1">
             {youAreOwed === 0 ? 'No pending collections.' : 'Total expected to receive.'}
           </p>

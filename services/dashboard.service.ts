@@ -14,6 +14,12 @@ async function getUserId() {
 export async function getDashboardDataService(page = 1, limit = 10) {
   const userId = await getUserId()
 
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { defaultCurrency: true }
+  })
+  const defaultCurrency = user?.defaultCurrency || 'USD'
+
   const settlements = await db.settlement.findMany({
     where: {
       OR: [
@@ -24,15 +30,38 @@ export async function getDashboardDataService(page = 1, limit = 10) {
     }
   })
 
+  // Fetch exchange rates for all unique currencies present in settlements
+  const uniqueCurrencies = [...new Set(settlements.map((s: any) => s.currency || 'USD'))]
+  const rates: Record<string, number> = {}
+  
+  for (const c of uniqueCurrencies) {
+    if (c === defaultCurrency) {
+      rates[c] = 1
+    } else {
+      try {
+        const res = await fetch(`https://open.er-api.com/v6/latest/${c}`, { next: { revalidate: 3600 } })
+        const data = await res.json()
+        rates[c] = data.rates[defaultCurrency] || 1
+      } catch (err) {
+        console.error(`Failed to fetch exchange rate for ${c}`, err)
+        rates[c] = 1
+      }
+    }
+  }
+
   let youOwe = new Decimal(0)
   let youAreOwed = new Decimal(0)
 
   for (const s of settlements) {
+    const currency = (s as any).currency || 'USD'
+    const rate = rates[currency]
+    const convertedAmount = new Decimal(s.amount.toString()).times(rate)
+
     if (s.from === userId) {
-      youOwe = youOwe.plus(new Decimal(s.amount.toString()))
+      youOwe = youOwe.plus(convertedAmount)
     }
     if (s.to === userId) {
-      youAreOwed = youAreOwed.plus(new Decimal(s.amount.toString()))
+      youAreOwed = youAreOwed.plus(convertedAmount)
     }
   }
 

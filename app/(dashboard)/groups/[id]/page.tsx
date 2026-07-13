@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { getGroupByIdService, getGroupMembersService } from '@/services/group.service'
 import { getExpensesByGroupService, getGroupSettlementsService } from '@/services/expense.service'
+import { db } from '@/lib/db'
 import GroupHeader from '@/components/group-header'
 import GroupMembers from '@/components/group-members'
 import ExpensesList from '@/components/expenses-list'
@@ -23,12 +24,19 @@ export default async function GroupDetailPage({
 
   const group = await getGroupByIdService(id, session.user.id)
   const members = await getGroupMembersService(id)
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id }
+  })
+  const defaultCurrency = (user as any)?.defaultCurrency || 'USD'
+
   const expenses = await getExpensesByGroupService(id)
   const settlements = await getGroupSettlementsService(id)
 
   const safeExpenses = expenses.map(e => ({
     ...e,
     amount: e.amount.toString(),
+    originalAmount: e.originalAmount ? e.originalAmount.toString() : null,
     splits: e.splits.map(s => ({
       ...s,
       splitAmount: s.splitAmount.toString()
@@ -37,7 +45,8 @@ export default async function GroupDetailPage({
 
   const safeSettlements = settlements.map(s => ({
     ...s,
-    amount: s.amount.toString()
+    amount: s.amount.toString(),
+    currency: (s as any).currency || 'USD'
   }))
 
   return (
@@ -55,19 +64,20 @@ export default async function GroupDetailPage({
           </TabsList>
 
           <TabsContent value="expenses" className="space-y-6">
-            <ExpensesList 
-              groupId={id} 
-              expenses={safeExpenses} 
-              members={members} 
+            <ExpensesList
+              groupId={id}
+              expenses={safeExpenses}
+              members={members}
               currentUserId={session.user.id}
               groupOwnerId={group.userId}
+              defaultCurrency={defaultCurrency}
             />
           </TabsContent>
 
           <TabsContent value="members" className="space-y-6">
-            <GroupMembers 
-              groupId={id} 
-              members={members} 
+            <GroupMembers
+              groupId={id}
+              members={members}
               currentUserId={session.user.id}
               groupOwnerId={group.userId}
             />
@@ -77,6 +87,7 @@ export default async function GroupDetailPage({
             <SettlementsList
               settlements={safeSettlements}
               groupId={id}
+              defaultCurrency={defaultCurrency}
             />
           </TabsContent>
         </Tabs>

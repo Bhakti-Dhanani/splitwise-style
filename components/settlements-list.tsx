@@ -9,9 +9,11 @@ import { Settlement } from '@/types'
 export default function SettlementsList({
   settlements,
   groupId,
+  defaultCurrency,
 }: {
   settlements: Settlement[]
   groupId: string
+  defaultCurrency: string
 }) {
   const [marking, setMarking] = useState<string | null>(null)
   const router = useRouter()
@@ -31,10 +33,12 @@ export default function SettlementsList({
   const unsettled = settlements.filter((s) => !s.settled)
   const settled = settlements.filter((s) => s.settled)
 
-  const totalUnsettled = unsettled.reduce(
-    (sum, s) => sum + parseFloat(s.amount as string),
-    0
-  )
+  const totalUnsettledByCurrency = unsettled.reduce((acc, s) => {
+    const currency = s.currency || 'USD'
+    if (!acc[currency]) acc[currency] = 0
+    acc[currency] += parseFloat(s.amount as string)
+    return acc
+  }, {} as Record<string, number>)
 
   return (
     <div className="space-y-6">
@@ -57,9 +61,13 @@ export default function SettlementsList({
                 <h3 className="text-lg font-semibold text-foreground">
                   Pending
                 </h3>
-                <span className="text-lg font-bold text-primary">
-                  ${totalUnsettled.toFixed(2)}
-                </span>
+                <div className="flex gap-2">
+                  {Object.entries(totalUnsettledByCurrency).map(([curr, amt]) => (
+                    <span key={curr} className="text-lg font-bold text-primary">
+                      {curr} {amt.toFixed(2)}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -86,7 +94,7 @@ export default function SettlementsList({
                         </p>
                       </div>
                       <span className="text-sm font-semibold text-primary">
-                        ${parseFloat(settlement.amount as string).toFixed(2)}
+                        {settlement.currency || 'USD'} {parseFloat(settlement.amount as string).toFixed(2)}
                       </span>
                     </div>
                     <button
@@ -131,8 +139,8 @@ export default function SettlementsList({
                           </span>
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-muted-foreground">
-                        ${parseFloat(settlement.amount as string).toFixed(2)}
+                      <span className="text-sm font-semibold text-muted-foreground line-through">
+                        {settlement.currency || 'USD'} {parseFloat(settlement.amount as string).toFixed(2)}
                       </span>
                     </div>
                     <span className="text-xs text-muted-foreground ml-4">

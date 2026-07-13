@@ -1,11 +1,21 @@
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { db } from '@/lib/db'
+import { SettingsForm } from '@/components/settings-form'
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session?.user) {
+    redirect('/sign-in')
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id }
+  })
+
+  if (!user) {
     redirect('/sign-in')
   }
 
@@ -57,14 +67,7 @@ export default async function SettingsPage() {
             <p className="text-sm text-muted-foreground">Customize your Splitwise experience.</p>
           </div>
           <div className="p-6 space-y-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Default Currency</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm max-w-xs pointer-events-none opacity-50" disabled>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
-            </div>
+            <SettingsForm initialCurrency={(user as any).defaultCurrency} />
           </div>
         </div>
       </div>

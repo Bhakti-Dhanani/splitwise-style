@@ -15,6 +15,7 @@ model User {
   image         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
+  defaultCurrency String @default("USD")
 
   sessions        Session[]
   accounts        Account[]
@@ -109,11 +110,15 @@ model Expense {
   group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   paidBy      String
   user        User     @relation(fields: [paidBy], references: [id], onDelete: Cascade)
-  description String
-  amount      Decimal  @db.Decimal(10, 2)
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  description    String
+  amount         Decimal  @db.Decimal(10, 2)
+  status         String   @default("PENDING")
+  date           DateTime @default(now())
+  category       String   @default("General")
+  currency       String   @default("USD")
+  originalAmount Decimal? @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
 
   splits ExpenseSplit[]
 
@@ -141,9 +146,12 @@ model Settlement {
   to        String
   userTo    User      @relation("SettlementTo", fields: [to], references: [id], onDelete: Cascade)
   amount    Decimal   @db.Decimal(10, 2)
+  currency  String    @default("USD")
   settled   Boolean?  @default(false)
   settledAt DateTime?
+  status    String    @default("PENDING")
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 
   @@map("settlements")
 }
