@@ -25,18 +25,18 @@ export default function GroupHeader({ group, currentUserId }: { group: Group, cu
 
   return (
     <>
-      <div className="flex items-center justify-between pb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 md:pb-6">
+        <div className="flex items-start sm:items-center gap-3 md:gap-4">
           <Link
             href="/groups"
-            className="p-2 border border-border bg-card rounded-lg hover:bg-muted transition-colors shadow-sm"
+            className="p-2 border border-border bg-card rounded-lg hover:bg-muted transition-colors shadow-sm shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">{group.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground truncate">{group.name}</h1>
             {group.description && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 truncate">
                 {group.description}
               </p>
             )}
@@ -44,7 +44,7 @@ export default function GroupHeader({ group, currentUserId }: { group: Group, cu
         </div>
 
         {currentUserId === group.userId && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto pl-[3.25rem] sm:pl-0">
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="inline-flex items-center gap-2 p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive border border-transparent hover:border-destructive/20"

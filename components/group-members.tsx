@@ -57,10 +57,10 @@ export default function GroupMembers({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Members</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Members</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {members.length} {members.length === 1 ? 'member' : 'members'} in this group
           </p>
@@ -68,10 +68,10 @@ export default function GroupMembers({
         {currentUserId === groupOwnerId && (
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium w-full sm:w-auto"
           >
-            <Plus className="w-4 h-4" />
-            Add Member
+            {!showAddForm && <Plus className="w-4 h-4" />}
+            {showAddForm ? 'Cancel' : 'Add Member'}
           </button>
         )}
       </div>
@@ -79,7 +79,7 @@ export default function GroupMembers({
       {showAddForm && (
         <form
           onSubmit={handleAddMember}
-          className="p-6 bg-card border border-border rounded-xl space-y-4"
+          className="p-4 md:p-6 bg-card border border-border rounded-xl space-y-4"
         >
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -141,7 +141,7 @@ export default function GroupMembers({
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <span className="text-xs font-semibold text-primary">
-                    {member.userId[0]?.toUpperCase()}
+                    {member.user?.name[0]?.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">

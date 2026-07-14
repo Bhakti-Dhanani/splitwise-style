@@ -35,14 +35,14 @@ export default async function DashboardPage(props: {
   const totalPages = Math.ceil((totalActivities || 0) / limit)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
         <DateFilter />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium">Total Balance</h3>
           </div>
@@ -54,7 +54,7 @@ export default async function DashboardPage(props: {
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium text-destructive">You Owe</h3>
           </div>
@@ -64,7 +64,7 @@ export default async function DashboardPage(props: {
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium text-emerald-600 dark:text-emerald-500">You Are Owed</h3>
           </div>
@@ -75,13 +75,13 @@ export default async function DashboardPage(props: {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2">
         <ExpensePieChart data={pieChartData} currency={defaultCurrency} />
         <ExpenseBarChart data={barChartData} currency={defaultCurrency} />
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="flex flex-col space-y-4 p-6 border-b border-border">
+        <div className="flex flex-col space-y-4 p-4 sm:p-6 border-b border-border">
           <div className="flex flex-col space-y-1.5">
             <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
             <p className="text-sm text-muted-foreground">Your recent group transactions</p>
@@ -92,12 +92,12 @@ export default async function DashboardPage(props: {
         </div>
         <div className="divide-y divide-border">
           {recentActivity.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground py-12 text-sm">
+            <div className="p-4 sm:p-6 text-center text-muted-foreground py-8 sm:py-12 text-sm">
               No recent activity to show.
             </div>
           ) : (
             recentActivity.map((activity: any) => (
-              <div key={activity.id} className="p-6 flex items-start gap-4">
+              <div key={activity.id} className="p-4 sm:p-6 flex items-start gap-3 sm:gap-4">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold uppercase">
                   {activity.user.name?.[0] || 'U'}
                 </div>
@@ -125,7 +125,7 @@ export default async function DashboardPage(props: {
           )}
         </div>
         {totalPages > 1 && (
-          <div className="p-4 border-t border-border flex justify-center pb-6">
+          <div className="p-4 sm:p-6 border-t border-border flex justify-center pb-6 sm:pb-6">
             <Pagination totalPages={totalPages} currentPage={page} />
           </div>
         )}

@@ -50,20 +50,20 @@ export default async function GroupDetailPage({
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <GroupHeader group={group} currentUserId={session.user.id} />
 
       {/* Content */}
       <div>
-        <Tabs defaultValue="expenses" className="space-y-6">
+        <Tabs defaultValue="expenses" className="space-y-4 md:space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-3 bg-card border border-border">
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="settlements">Settlements</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="expenses" className="space-y-6">
+          <TabsContent value="expenses" className="space-y-4 md:space-y-6">
             <ExpensesList
               groupId={id}
               expenses={safeExpenses}
