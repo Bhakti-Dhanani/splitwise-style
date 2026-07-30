@@ -9,7 +9,7 @@ import {
   UserPlus, 
   Activity, 
   Settings,
-  LogOut,
+  User,
   Wallet,
   Menu,
   X
@@ -21,6 +21,7 @@ const navigation = [
   { name: 'Groups', href: '/groups', icon: Users },
   { name: 'Friends', href: '/friends', icon: UserPlus },
   { name: 'Activity', href: '/activity', icon: Activity },
+  { name: 'Profile', href: '/profile', icon: User },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
@@ -111,19 +112,31 @@ export function Sidebar({ user }: { user: any }) {
         </div>
 
         <div className="border-t border-border p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-              {user?.name?.[0]?.toUpperCase() || 'U'}
-            </div>
+          <Link 
+            href="/profile" 
+            className="flex items-center gap-3 p-2 -m-2 rounded-lg hover:bg-muted/60 transition-colors group"
+            title="View Profile"
+          >
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt={user?.name || 'User Avatar'}
+                className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+            )}
             <div className="flex flex-col overflow-hidden">
-              <span className="truncate text-sm font-medium text-foreground">
+              <span className="truncate text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                 {user?.name || 'User'}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {user?.email}
               </span>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
     </>

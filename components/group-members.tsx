@@ -139,10 +139,14 @@ export default function GroupMembers({
               className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
             >
               <div className="flex items-center gap-3 flex-1">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-primary">
-                    {member.user?.name[0]?.toUpperCase()}
-                  </span>
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border border-border">
+                  {member.user?.image ? (
+                    <img src={member.user.image} alt={member.user.name || 'Member'} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-semibold text-primary">
+                      {member.user?.name?.[0]?.toUpperCase() || 'U'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-foreground truncate">
