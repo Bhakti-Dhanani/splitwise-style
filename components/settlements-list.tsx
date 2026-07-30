@@ -41,9 +41,9 @@ export default function SettlementsList({
   }, {} as Record<string, number>)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Settlements</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-foreground">Settlements</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Track who owes whom
         </p>
@@ -57,11 +57,11 @@ export default function SettlementsList({
         <div className="space-y-8">
           {unsettled.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
                 <h3 className="text-lg font-semibold text-foreground">
                   Pending
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {Object.entries(totalUnsettledByCurrency).map(([curr, amt]) => (
                     <span key={curr} className="text-lg font-bold text-primary">
                       {curr} {amt.toFixed(2)}
@@ -74,16 +74,16 @@ export default function SettlementsList({
                 {unsettled.map((settlement) => (
                   <div
                     key={settlement.id}
-                    className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
                   >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-xs font-semibold text-primary">
                           {(settlement.userFrom?.name || settlement.userFrom?.email || settlement.from)[0]?.toUpperCase()}
                         </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-muted-foreground">
+                      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
+                        <p className="text-sm text-muted-foreground truncate">
                           <span className="font-medium text-foreground">
                             {settlement.userFrom?.name || settlement.userFrom?.email || settlement.from}
                           </span>{' '}
@@ -92,15 +92,15 @@ export default function SettlementsList({
                             {settlement.userTo?.name || settlement.userTo?.email || settlement.to}
                           </span>
                         </p>
+                        <span className="text-sm font-semibold text-primary shrink-0">
+                          {settlement.currency || 'USD'} {parseFloat(settlement.amount as string).toFixed(2)}
+                        </span>
                       </div>
-                      <span className="text-sm font-semibold text-primary">
-                        {settlement.currency || 'USD'} {parseFloat(settlement.amount as string).toFixed(2)}
-                      </span>
                     </div>
                     <button
                       onClick={() => handleMarkSettled(settlement.id)}
                       disabled={marking === settlement.id}
-                      className="ml-4 p-2 hover:bg-green-500/10 rounded-lg transition-colors text-green-600 disabled:opacity-50"
+                      className="w-full sm:w-auto mt-2 sm:mt-0 p-2 border sm:border-transparent border-border/50 hover:bg-green-500/10 rounded-lg transition-colors text-green-600 disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
                       title="Mark as settled"
                     >
                       {marking === settlement.id ? (
@@ -108,6 +108,7 @@ export default function SettlementsList({
                       ) : (
                         <Check className="w-4 h-4" />
                       )}
+                      <span className="text-sm font-medium sm:hidden">Mark Settled</span>
                     </button>
                   </div>
                 ))}
@@ -122,14 +123,14 @@ export default function SettlementsList({
                 {settled.map((settlement) => (
                   <div
                     key={settlement.id}
-                    className="flex items-center justify-between p-4 bg-card border border-border/50 rounded-lg opacity-75"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-4 bg-card border border-border/50 rounded-lg opacity-75"
                   >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 shrink-0 rounded-full bg-green-500/10 flex items-center justify-center">
                         <Check className="w-5 h-5 text-green-600" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-muted-foreground line-through">
+                      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
+                        <p className="text-sm text-muted-foreground line-through truncate">
                           <span className="font-medium text-foreground">
                             {settlement.userFrom?.name || settlement.userFrom?.email || settlement.from}
                           </span>{' '}
@@ -138,12 +139,12 @@ export default function SettlementsList({
                             {settlement.userTo?.name || settlement.userTo?.email || settlement.to}
                           </span>
                         </p>
+                        <span className="text-sm font-semibold text-muted-foreground line-through shrink-0">
+                          {settlement.currency || 'USD'} {parseFloat(settlement.amount as string).toFixed(2)}
+                        </span>
                       </div>
-                      <span className="text-sm font-semibold text-muted-foreground line-through">
-                        {settlement.currency || 'USD'} {parseFloat(settlement.amount as string).toFixed(2)}
-                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground ml-4">
+                    <span className="text-xs text-muted-foreground ml-13 sm:ml-4">
                       {settlement.settledAt &&
                         new Date(settlement.settledAt).toLocaleDateString()}
                     </span>

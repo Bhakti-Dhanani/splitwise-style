@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { createExpenseService, deleteExpenseService, editExpenseService } from '@/services/expense.service'
-import { Plus, Trash2, Loader2, Calculator, Edit2, CheckSquare, Square } from 'lucide-react'
+import { Plus, Trash2, Loader2, Calculator, Edit2, CheckSquare, Square, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Decimal from 'decimal.js'
 import { Expense, Member, SplitMethod } from '@/types'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export default function ExpensesList({
   groupId,
@@ -39,7 +40,35 @@ export default function ExpensesList({
   const [splitValues, setSplitValues] = useState<Record<string, string>>({})
   const [selectedMembers, setSelectedMembers] = useState<Record<string, boolean>>({})
 
+  const [availableCurrencies, setAvailableCurrencies] = useState<string[]>(['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'JPY'])
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 9
+
+  const totalPages = Math.ceil(expenses.length / itemsPerPage)
+  const currentExpenses = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return expenses.slice(start, start + itemsPerPage)
+  }, [expenses, currentPage, itemsPerPage])
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages)
+    }
+  }, [totalPages, currentPage])
+
   const router = useRouter()
+
+  useEffect(() => {
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates) {
+          setAvailableCurrencies(Object.keys(data.rates))
+        }
+      })
+      .catch(err => console.error('Failed to fetch currencies:', err))
+  }, [])
 
   useEffect(() => {
     if (!showForm && !editingExpenseId) {
@@ -325,10 +354,10 @@ export default function ExpensesList({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Expenses</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Expenses</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Track all shared expenses in this group
           </p>
@@ -338,9 +367,9 @@ export default function ExpensesList({
             if (showForm) handleCancel()
             else setShowForm(true)
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium w-full sm:w-auto"
         >
-          <Plus className="w-4 h-4" />
+          {!showForm && <Plus className="w-4 h-4" />}
           {showForm ? 'Cancel' : 'Add Expense'}
         </button>
       </div>
@@ -348,9 +377,9 @@ export default function ExpensesList({
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="p-6 bg-card border border-border rounded-xl space-y-5 shadow-sm"
+          className="p-4 sm:p-6 bg-card border border-border rounded-xl space-y-4 sm:space-y-5 shadow-sm"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Description
@@ -370,19 +399,18 @@ export default function ExpensesList({
                 Total Amount
               </label>
               <div className="flex gap-2">
-                <select
-                  value={currency}
-                  onChange={e => setCurrency(e.target.value)}
-                  className="w-24 px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="INR">INR</option>
-                  <option value="AUD">AUD</option>
-                  <option value="CAD">CAD</option>
-                  <option value="JPY">JPY</option>
-                </select>
+                <Select value={currency} onValueChange={(val) => val && setCurrency(val)}>
+                  <SelectTrigger className="w-20 sm:w-24 px-2 sm:px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary shrink-0 h-auto">
+                    <SelectValue placeholder="USD" />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false} className="max-h-60 overflow-y-auto">
+                    {availableCurrencies.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <input
                   type="number"
                   value={originalAmount}
@@ -391,7 +419,7 @@ export default function ExpensesList({
                   step="0.01"
                   min="0.01"
                   placeholder="0.00"
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="flex-1 min-w-0 px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -446,7 +474,7 @@ export default function ExpensesList({
           </div>
 
           <div className="pt-4 border-t border-border">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4">
               <label className="block text-sm font-medium text-foreground flex items-center gap-2">
                 <Calculator className="w-4 h-4 text-muted-foreground" />
                 Split Method
@@ -454,7 +482,7 @@ export default function ExpensesList({
               <select
                 value={splitMethod}
                 onChange={(e) => setSplitMethod(e.target.value as SplitMethod)}
-                className="px-3 py-1.5 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full sm:w-auto px-3 py-1.5 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="equal">Equally</option>
                 <option value="exact">Exact Amounts</option>
@@ -463,54 +491,58 @@ export default function ExpensesList({
               </select>
             </div>
 
-            <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/50">
+            <div className="space-y-3 bg-muted/30 p-3 sm:p-4 rounded-xl border border-border/50">
               {members.map((member) => (
-                <div key={member.userId} className={`flex items-center gap-3 ${selectedMembers[member.userId] === false ? 'opacity-50' : ''}`}>
-                  <button
-                    type="button"
-                    onClick={() => toggleMemberSelection(member.userId)}
-                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                  >
-                    {selectedMembers[member.userId] !== false ? (
-                      <CheckSquare className="w-5 h-5 text-primary" />
-                    ) : (
-                      <Square className="w-5 h-5" />
-                    )}
-                  </button>
-                  <div className="flex-1 flex items-center gap-2">
-                    {member.user?.image ? (
-                      <img src={member.user.image} className="w-6 h-6 rounded-full" alt="" />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary uppercase">
-                        {member.user?.name?.[0] || 'U'}
-                      </div>
-                    )}
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {member.user?.name || member.userId}
-                    </span>
+                <div key={member.userId} className={`flex flex-col sm:flex-row sm:items-center gap-3 ${selectedMembers[member.userId] === false ? 'opacity-50' : ''}`}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleMemberSelection(member.userId)}
+                      className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                    >
+                      {selectedMembers[member.userId] !== false ? (
+                        <CheckSquare className="w-5 h-5 text-primary" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      {member.user?.image ? (
+                        <img src={member.user.image} className="w-6 h-6 rounded-full shrink-0" alt="" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary uppercase shrink-0">
+                          {member.user?.name?.[0] || 'U'}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {member.user?.name || member.userId}
+                      </span>
+                    </div>
                   </div>
 
-                  {splitMethod !== 'equal' && selectedMembers[member.userId] !== false && (
-                    <div className="w-24 shrink-0">
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={splitValues[member.userId] || ''}
-                          onChange={(e) => handleValueChange(member.userId, e.target.value)}
-                          step={splitMethod === 'shares' ? '1' : '0.01'}
-                          min="0"
-                          placeholder="0"
-                          className="w-full pl-3 pr-6 py-1.5 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-medium">
-                          {splitMethod === 'percentage' ? '%' : splitMethod === 'shares' ? 'x' : currency}
-                        </span>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 pl-8 sm:pl-0">
+                    {splitMethod !== 'equal' && selectedMembers[member.userId] !== false && (
+                      <div className="flex-1 sm:w-24 shrink-0 min-w-0">
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={splitValues[member.userId] || ''}
+                            onChange={(e) => handleValueChange(member.userId, e.target.value)}
+                            step={splitMethod === 'shares' ? '1' : '0.01'}
+                            min="0"
+                            placeholder="0"
+                            className="w-full pl-3 pr-6 py-1.5 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-medium">
+                            {splitMethod === 'percentage' ? '%' : splitMethod === 'shares' ? 'x' : currency}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  <div className="w-24 text-right shrink-0 font-medium text-sm text-foreground bg-background py-1.5 px-2 rounded-md border border-border/50 shadow-sm">
-                    {currency} {calculatedSplits[member.userId]?.toNumber().toFixed(2) || '0.00'}
+                    <div className="w-24 text-right shrink-0 font-medium text-sm text-foreground bg-background py-1.5 px-2 rounded-md border border-border/50 shadow-sm">
+                      {currency} {calculatedSplits[member.userId]?.toNumber().toFixed(2) || '0.00'}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -523,19 +555,19 @@ export default function ExpensesList({
             </p>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={handleCancel}
               disabled={loading}
-              className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted transition-colors disabled:opacity-50 text-sm font-medium"
+              className="w-full sm:w-auto px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted transition-colors disabled:opacity-50 text-sm font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-medium shadow-sm"
+              className="w-full sm:w-auto px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-medium shadow-sm"
             >
               {loading ? (
                 <>
@@ -555,52 +587,81 @@ export default function ExpensesList({
           <p className="text-muted-foreground">No expenses yet</p>
         </div>
       ) : !showForm ? (
-        <div className="space-y-2">
-          {expenses.map((expense) => (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            {currentExpenses.map((expense) => (
             <div
               key={expense.id}
-              className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 text-xs font-medium rounded bg-secondary text-secondary-foreground">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded bg-secondary text-secondary-foreground shrink-0">
                     {(expense as any).category || 'General'}
                   </span>
-                  <h3 className="font-medium text-foreground">{expense.description}</h3>
+                  <h3 className="font-medium text-foreground truncate">{expense.description}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1 truncate">
                   Paid by {members.find(m => m.userId === expense.paidBy)?.user?.name || expense.paidBy} on{' '}
                   {new Date((expense as any).date || expense.createdAt).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right flex flex-col items-end">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-border/50">
+                <div className="text-left sm:text-right flex flex-col sm:items-end">
                   <span className="text-lg font-bold text-primary">
                     {(expense as any).currency || defaultCurrency} {parseFloat((expense as any).originalAmount || expense.amount).toFixed(2)}
                   </span>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${(expense as any).status === 'PAID' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 'bg-amber-500/10 text-amber-600 dark:text-amber-500'}`}>
-                  {(expense as any).status === 'PAID' ? 'Paid' : 'Pending'}
-                </span>
-                {(expense as any).status !== 'PAID' && (currentUserId === groupOwnerId || currentUserId === expense.paidBy) && (
-                  <>
-                    <button
-                      onClick={() => handleEdit(expense)}
-                      className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(expense.id)}
-                      className="p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${(expense as any).status === 'PAID' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 'bg-amber-500/10 text-amber-600 dark:text-amber-500'}`}>
+                    {(expense as any).status === 'PAID' ? 'Paid' : 'Pending'}
+                  </span>
+                  {(expense as any).status !== 'PAID' && (currentUserId === groupOwnerId || currentUserId === expense.paidBy) && (
+                    <div className="flex items-center border-l border-border/50 pl-2 ml-1">
+                      <button
+                        onClick={() => handleEdit(expense)}
+                        className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(expense.id)}
+                        className="p-1.5 sm:p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-border bg-card rounded-lg disabled:opacity-50 hover:bg-muted transition-colors text-foreground flex items-center justify-center"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-1 px-2">
+                <span className="text-sm font-medium text-foreground">Page {currentPage}</span>
+                <span className="text-sm text-muted-foreground">of {totalPages}</span>
+              </div>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-border bg-card rounded-lg disabled:opacity-50 hover:bg-muted transition-colors text-foreground flex items-center justify-center"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       ) : null}
     </div>

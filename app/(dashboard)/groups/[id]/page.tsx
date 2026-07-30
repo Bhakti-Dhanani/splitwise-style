@@ -33,37 +33,37 @@ export default async function GroupDetailPage({
   const expenses = await getExpensesByGroupService(id)
   const settlements = await getGroupSettlementsService(id)
 
-  const safeExpenses = expenses.map(e => ({
+  const safeExpenses = expenses.map((e: any) => ({
     ...e,
     amount: e.amount.toString(),
     originalAmount: e.originalAmount ? e.originalAmount.toString() : null,
-    splits: e.splits.map(s => ({
+    splits: e.splits.map((s: any) => ({
       ...s,
       splitAmount: s.splitAmount.toString()
     }))
   }))
 
-  const safeSettlements = settlements.map(s => ({
+  const safeSettlements = settlements.map((s: any) => ({
     ...s,
     amount: s.amount.toString(),
     currency: (s as any).currency || 'USD'
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <GroupHeader group={group} currentUserId={session.user.id} />
 
       {/* Content */}
       <div>
-        <Tabs defaultValue="expenses" className="space-y-6">
+        <Tabs defaultValue="expenses" className="space-y-4 md:space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-3 bg-card border border-border">
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="settlements">Settlements</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="expenses" className="space-y-6">
+          <TabsContent value="expenses" className="space-y-4 md:space-y-6">
             <ExpensesList
               groupId={id}
               expenses={safeExpenses}
