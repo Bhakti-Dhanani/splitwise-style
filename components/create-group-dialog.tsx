@@ -37,13 +37,13 @@ export default function CreateGroupDialog({
 
   return (
     <>
-      <div onClick={() => setOpen(true)} className="w-full cursor-pointer">
+      <div onClick={() => setOpen(true)} className="w-full sm:w-auto cursor-pointer">
         {children}
       </div>
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-xl max-w-md w-full shadow-xl">
+          <div className="bg-card border border-border rounded-2xl max-w-md w-[92vw] shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-bold text-foreground">Create Group</h2>
               <button
