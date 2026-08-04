@@ -30,9 +30,9 @@ export function ExpensePieChart({ data, currency }: ExpensePieChartProps) {
   }
 
   return (
-    <div className="h-[350px] w-full border rounded-xl bg-card shadow-sm p-4 flex flex-col relative overflow-hidden">
+    <div className="h-[300px] sm:h-[350px] w-full border rounded-xl bg-card shadow-sm p-3 sm:p-4 flex flex-col relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-400 opacity-50"></div>
-      <h3 className="font-semibold mb-2 text-center text-foreground">Expenses by Category</h3>
+      <h3 className="font-semibold mb-2 text-center text-foreground text-sm sm:text-base">Expenses by Category</h3>
       <div className="flex-1 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -40,8 +40,8 @@ export function ExpensePieChart({ data, currency }: ExpensePieChartProps) {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={75}
-              outerRadius={110}
+              innerRadius={55}
+              outerRadius={85}
               paddingAngle={0}
               minAngle={15}
               dataKey="value"

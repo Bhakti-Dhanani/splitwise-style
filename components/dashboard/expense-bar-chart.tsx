@@ -30,8 +30,8 @@ export function ExpenseBarChart({ data, currency }: ExpenseBarChartProps) {
   }))
 
   return (
-    <div className="h-[350px] w-full border rounded-xl bg-card shadow-sm p-4 flex flex-col">
-      <h3 className="font-semibold mb-4 text-center">Expenses Over Time</h3>
+    <div className="h-[300px] sm:h-[350px] w-full border rounded-xl bg-card shadow-sm p-3 sm:p-4 flex flex-col">
+      <h3 className="font-semibold mb-3 sm:mb-4 text-center text-sm sm:text-base">Expenses Over Time</h3>
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

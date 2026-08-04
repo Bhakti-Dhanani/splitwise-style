@@ -294,11 +294,11 @@ export function ProfileForm({ user, stats }: ProfileFormProps) {
           </div>
 
           {/* Right Side: Clean Action Toolbar */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full md:w-auto">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold text-xs transition-all active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold text-xs transition-all active:scale-95 w-full sm:w-auto"
             >
               <Upload className="w-4 h-4" />
               <span>Upload Photo</span>
@@ -307,7 +307,7 @@ export function ProfileForm({ user, stats }: ProfileFormProps) {
             <button
               type="button"
               onClick={() => setShowPresets(!showPresets)}
-              className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-muted/80 hover:bg-muted border border-border text-foreground font-semibold text-xs transition-all active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-xl bg-muted/80 hover:bg-muted border border-border text-foreground font-semibold text-xs transition-all active:scale-95 w-full sm:w-auto"
             >
               <Smile className="w-4 h-4 text-primary" />
               <span>{showPresets ? 'Hide Gallery' : 'Avatar Gallery'}</span>
@@ -356,7 +356,7 @@ export function ProfileForm({ user, stats }: ProfileFormProps) {
       {/* ========================================================================= */}
       {/* 2. MODERN STATISTICS GRID */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         <div className="rounded-3xl border border-border/80 bg-card p-6 flex items-center gap-4 shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 group">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
             <Users className="w-6 h-6" />

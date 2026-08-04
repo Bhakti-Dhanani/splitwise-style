@@ -34,7 +34,7 @@ export async function createInviteService(params?: { groupId?: string }) {
     const code = crypto.randomBytes(8).toString('hex')
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
-    const invitation = await db.invitation.create({
+    const invitation = await (db as any).invitation.create({
       data: {
         code,
         inviterId: currentUserId,
@@ -54,7 +54,7 @@ export async function createInviteService(params?: { groupId?: string }) {
 
 export async function getInviteDetailsService(code: string) {
   try {
-    const invitation = await db.invitation.findUnique({
+    const invitation = await (db as any).invitation.findUnique({
       where: { code },
       include: {
         inviter: {
@@ -95,7 +95,7 @@ export async function acceptInviteService(code: string) {
   try {
     const currentUserId = await getUserId()
 
-    const invitation = await db.invitation.findUnique({
+    const invitation = await (db as any).invitation.findUnique({
       where: { code },
       include: {
         inviter: true,

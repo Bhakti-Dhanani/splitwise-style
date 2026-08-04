@@ -44,13 +44,13 @@ export default function GroupHeader({ group, currentUserId }: { group: Group, cu
         </div>
 
         {currentUserId === group.userId && (
-          <div className="flex items-center gap-2 self-start sm:self-auto pl-[3.25rem] sm:pl-0">
+          <div className="flex items-center gap-2 self-start sm:self-auto pl-0">
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="inline-flex items-center gap-2 p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive border border-transparent hover:border-destructive/20"
+              className="inline-flex items-center gap-2 px-3 py-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-destructive border border-destructive/20 text-xs sm:text-sm font-medium"
             >
-              <Trash2 className="w-5 h-5" />
-              <span className="text-sm font-medium hidden sm:inline-block">Delete</span>
+              <Trash2 className="w-4 h-4" />
+              <span>Delete Group</span>
             </button>
           </div>
         )}

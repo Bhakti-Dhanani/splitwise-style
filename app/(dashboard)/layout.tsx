@@ -21,17 +21,17 @@ export default async function DashboardLayout({
       <Sidebar user={session.user} />
       
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 pl-14 sm:pl-16 md:pl-6 md:px-6">
           <div className="flex items-center gap-4">
             {/* Breadcrumb or Search could go here */}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
             <SignOutButton />
           </div>
         </header>
         
-        <main className="flex-1 overflow-y-auto bg-muted/30 p-6">
+        <main className="flex-1 overflow-y-auto bg-muted/30 p-3.5 sm:p-6">
           <div className="mx-auto max-w-6xl">
             {children}
           </div>

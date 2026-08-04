@@ -25,10 +25,10 @@ export function DateFilter() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground whitespace-nowrap">Filter by date:</span>
+    <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+      <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Filter by date:</span>
       <Select value={currentFilter} onValueChange={handleFilterChange}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Select date range">
             {labels[currentFilter] || 'Select date range'}
           </SelectValue>

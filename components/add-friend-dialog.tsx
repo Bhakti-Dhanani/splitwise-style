@@ -48,7 +48,7 @@ export default function AddFriendDialog({ children }: { children: React.ReactNod
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[92vw] max-w-[95vw] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add a Friend</DialogTitle>
           <DialogDescription>

@@ -61,7 +61,7 @@ export default function InviteDialog({ children, groupId, groupName }: InviteDia
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={children as React.ReactElement} />
-      <DialogContent className="sm:max-w-[460px] bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl">
+      <DialogContent className="w-[92vw] max-w-[95vw] sm:max-w-[460px] bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-6">
         <DialogHeader className="space-y-3">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
             <Share2 className="h-6 w-6" />

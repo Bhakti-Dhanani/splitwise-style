@@ -49,7 +49,7 @@ export function Sidebar({ user }: { user: any }) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden fixed top-3 left-6 z-40 p-2 rounded-lg bg-card border border-border shadow-sm text-foreground hover:bg-muted transition-colors"
+          className="md:hidden fixed top-3 left-3 sm:left-4 z-40 p-2 rounded-lg bg-card border border-border shadow-sm text-foreground hover:bg-muted transition-colors"
           aria-label="Open Menu"
         >
           <Menu className="w-5 h-5" />

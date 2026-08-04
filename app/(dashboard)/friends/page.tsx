@@ -25,15 +25,15 @@ export default async function FriendsPage() {
             Manage your connections and view individual balances.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           <InviteDialog>
-            <button className="inline-flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-lg transition-colors font-medium shadow-sm">
+            <button className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-lg transition-colors font-medium shadow-sm w-full sm:w-auto">
               <Link2 className="w-4 h-4 text-primary" />
               Invite via Link
             </button>
           </InviteDialog>
           <AddFriendDialog>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm">
+            <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm w-full sm:w-auto">
               <UserPlus className="w-4 h-4" />
               Add Friend
             </button>
