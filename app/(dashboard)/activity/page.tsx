@@ -64,11 +64,11 @@ export default async function ActivityPage(props: {
       ) : (
         <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
           {activities.map((activity: any, idx: number) => (
-            <div key={activity.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+            <div key={activity.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active gap-3 sm:gap-4">
               <div className="flex items-center justify-center w-10 h-10 rounded-full border border-background bg-card shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
                 {getActivityIcon(activity.action)}
               </div>
-              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-[calc(100%-3.25rem)] sm:w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-3.5 sm:p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-2">
                   {activity.user.image ? (
                     <img src={activity.user.image} alt={activity.user.name} className="w-6 h-6 rounded-full" />

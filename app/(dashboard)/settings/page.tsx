@@ -3,6 +3,8 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { SettingsForm } from '@/components/settings-form'
+import Link from 'next/link'
+import { User, ArrowRight, Camera } from 'lucide-react'
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -31,40 +33,46 @@ export default async function SettingsPage() {
       </div>
 
       <div className="grid gap-6">
-        <div className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="p-6 border-b border-border">
-            <h3 className="text-lg font-medium text-foreground">Profile</h3>
-            <p className="text-sm text-muted-foreground">Update your personal information.</p>
+        {/* Profile Link Card */}
+        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-border flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium text-foreground">Profile Overview</h3>
+              <p className="text-sm text-muted-foreground">Manage your personal info and profile picture.</p>
+            </div>
+            <Link
+              href="/profile"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <span>Edit Profile</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-          <div className="p-6 space-y-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Name</label>
-              <input 
-                type="text" 
-                defaultValue={session.user.name || ''} 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm max-w-md pointer-events-none opacity-50" 
-                disabled 
-              />
+          <div className="p-6 flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border-2 border-border">
+              {user.image ? (
+                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-2xl font-bold text-primary">
+                  {user.name?.[0]?.toUpperCase() || 'U'}
+                </span>
+              )}
             </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Email</label>
-              <input 
-                type="email" 
-                defaultValue={session.user.email} 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm max-w-md pointer-events-none opacity-50" 
-                disabled 
-              />
+            <div className="space-y-1 text-center sm:text-left flex-1">
+              <h4 className="text-lg font-semibold text-foreground">{user.name}</h4>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <p className="text-xs text-primary font-medium mt-1">
+                Customize your name, profile photo avatar, and currency preferences.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Profile updates will be available in a future release.
-            </p>
           </div>
         </div>
 
+        {/* Currency / Preferences Card */}
         <div className="rounded-xl border border-border bg-card shadow-sm">
           <div className="p-6 border-b border-border">
             <h3 className="text-lg font-medium text-foreground">Preferences</h3>
-            <p className="text-sm text-muted-foreground">Customize your Splitwise experience.</p>
+            <p className="text-sm text-muted-foreground">Customize your default currency.</p>
           </div>
           <div className="p-6 space-y-4">
             <SettingsForm initialCurrency={(user as any).defaultCurrency} />

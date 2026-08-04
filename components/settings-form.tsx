@@ -38,9 +38,9 @@ export function SettingsForm({ initialCurrency }: { initialCurrency: string }) {
   return (
     <div className="grid gap-2">
       <label className="text-sm font-medium">Default Currency</label>
-      <div className="flex gap-4 items-center">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center max-w-md">
         <Select value={currency} onValueChange={(val) => val && setCurrency(val)}>
-          <SelectTrigger className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm max-w-xs focus:outline-none focus:ring-2 focus:ring-primary">
+          <SelectTrigger className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm sm:max-w-xs focus:outline-none focus:ring-2 focus:ring-primary">
             <SelectValue placeholder="Select Currency" />
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false} className="max-h-60 overflow-y-auto">
@@ -54,7 +54,7 @@ export function SettingsForm({ initialCurrency }: { initialCurrency: string }) {
         <button
           onClick={handleSave}
           disabled={loading || currency === initialCurrency}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-medium min-w-[80px] flex justify-center"
+          className="w-full sm:w-auto px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-medium min-w-[80px] flex items-center justify-center h-10"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
         </button>

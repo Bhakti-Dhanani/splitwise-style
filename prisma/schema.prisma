@@ -28,6 +28,7 @@ model User {
   friendships1    Friendship[]   @relation("Friend1")
   friendships2    Friendship[]   @relation("Friend2")
   activities      Activity[]
+  invitationsSent Invitation[]   @relation("Inviter")
 
   @@map("user")
 }
@@ -89,6 +90,7 @@ model Group {
   expenses    Expense[]
   settlements Settlement[]
   activities  Activity[]
+  invitations Invitation[]
 
   @@map("groups")
 }
@@ -181,3 +183,18 @@ model Activity {
 
   @@map("activities")
 }
+
+model Invitation {
+  id        String    @id @default(uuid())
+  code      String    @unique @default(cuid())
+  inviterId String
+  inviter   User      @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  groupId   String?
+  group     Group?    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  status    String    @default("PENDING")
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("invitations")
+}
+

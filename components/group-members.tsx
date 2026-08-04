@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { addMemberToGroupService, removeMemberFromGroupService } from '@/services/group.service'
-import { Plus, X, Loader2 } from 'lucide-react'
+import { Plus, X, Loader2, Link2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Member } from '@/types'
+import InviteDialog from '@/components/invite-dialog'
 
 export default function GroupMembers({
   groupId,
@@ -65,15 +66,23 @@ export default function GroupMembers({
             {members.length} {members.length === 1 ? 'member' : 'members'} in this group
           </p>
         </div>
-        {currentUserId === groupOwnerId && (
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium w-full sm:w-auto"
-          >
-            {!showAddForm && <Plus className="w-4 h-4" />}
-            {showAddForm ? 'Cancel' : 'Add Member'}
-          </button>
-        )}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <InviteDialog groupId={groupId}>
+            <button className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-lg transition-colors font-medium flex-1 sm:flex-initial">
+              <Link2 className="w-4 h-4 text-primary" />
+              Invite Link
+            </button>
+          </InviteDialog>
+          {currentUserId === groupOwnerId && (
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium flex-1 sm:flex-initial"
+            >
+              {!showAddForm && <Plus className="w-4 h-4" />}
+              {showAddForm ? 'Cancel' : 'Add Member'}
+            </button>
+          )}
+        </div>
       </div>
 
       {showAddForm && (
@@ -139,10 +148,14 @@ export default function GroupMembers({
               className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
             >
               <div className="flex items-center gap-3 flex-1">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-primary">
-                    {member.user?.name[0]?.toUpperCase()}
-                  </span>
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 border border-border">
+                  {member.user?.image ? (
+                    <img src={member.user.image} alt={member.user.name || 'Member'} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-semibold text-primary">
+                      {member.user?.name?.[0]?.toUpperCase() || 'U'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-foreground truncate">
