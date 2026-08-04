@@ -1,9 +1,10 @@
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { UserPlus, User as UserIcon } from 'lucide-react'
+import { UserPlus, Link2 } from 'lucide-react'
 import { getFriendsService } from '@/services/friend.service'
 import AddFriendDialog from '@/components/add-friend-dialog'
+import InviteDialog from '@/components/invite-dialog'
 import { User } from '@/types'
 
 export default async function FriendsPage() {
@@ -17,19 +18,27 @@ export default async function FriendsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Friends</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your connections and view individual balances.
           </p>
         </div>
-        <AddFriendDialog>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm">
-            <UserPlus className="w-4 h-4" />
-            Add Friend
-          </button>
-        </AddFriendDialog>
+        <div className="flex items-center gap-3">
+          <InviteDialog>
+            <button className="inline-flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-lg transition-colors font-medium shadow-sm">
+              <Link2 className="w-4 h-4 text-primary" />
+              Invite via Link
+            </button>
+          </InviteDialog>
+          <AddFriendDialog>
+            <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm">
+              <UserPlus className="w-4 h-4" />
+              Add Friend
+            </button>
+          </AddFriendDialog>
+        </div>
       </div>
 
       {friends.length === 0 ? (
@@ -39,14 +48,22 @@ export default async function FriendsPage() {
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">No friends yet</h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
-            Add friends to split expenses with them directly, outside of groups.
+            Add friends by email or invite them via a shareable link to start splitting expenses.
           </p>
-          <AddFriendDialog>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm">
-              <UserPlus className="w-4 h-4" />
-              Add Your First Friend
-            </button>
-          </AddFriendDialog>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <InviteDialog>
+              <button className="inline-flex items-center gap-2 px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-lg transition-colors font-medium shadow-sm">
+                <Link2 className="w-4 h-4 text-primary" />
+                Invite via Link
+              </button>
+            </InviteDialog>
+            <AddFriendDialog>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm">
+                <UserPlus className="w-4 h-4" />
+                Add Your First Friend
+              </button>
+            </AddFriendDialog>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
