@@ -6,6 +6,7 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { logActivityService } from './activity.service'
 import { ACTIVITY_ACTIONS } from '@/constants'
+import { getAppBaseUrl } from '@/lib/utils'
 import crypto from 'crypto'
 
 async function getUserId() {
@@ -34,7 +35,7 @@ export async function createInviteService(params?: { groupId?: string }) {
     const code = crypto.randomBytes(8).toString('hex')
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
-    const invitation = await (db as any).invitation.create({
+    const invitation = await db.invitation.create({
       data: {
         code,
         inviterId: currentUserId,
@@ -43,7 +44,13 @@ export async function createInviteService(params?: { groupId?: string }) {
       },
     })
 
-    return { success: true, code: invitation.code }
+    const headerList = await headers()
+    const host = headerList.get('host') || headerList.get('x-forwarded-host')
+    const proto = headerList.get('x-forwarded-proto') || 'https'
+    const baseUrl = host ? `${proto}://${host}` : getAppBaseUrl()
+    const inviteUrl = `${baseUrl}/invite/${invitation.code}`
+
+    return { success: true, code: invitation.code, inviteUrl }
   } catch (error) {
     if (error instanceof Error) {
       return { error: error.message }
@@ -54,7 +61,7 @@ export async function createInviteService(params?: { groupId?: string }) {
 
 export async function getInviteDetailsService(code: string) {
   try {
-    const invitation = await (db as any).invitation.findUnique({
+    const invitation = await db.invitation.findUnique({
       where: { code },
       include: {
         inviter: {
@@ -95,7 +102,7 @@ export async function acceptInviteService(code: string) {
   try {
     const currentUserId = await getUserId()
 
-    const invitation = await (db as any).invitation.findUnique({
+    const invitation = await db.invitation.findUnique({
       where: { code },
       include: {
         inviter: true,

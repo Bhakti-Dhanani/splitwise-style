@@ -40,8 +40,12 @@ export default function InviteDialog({ children, groupId, groupName }: InviteDia
       const res = await createInviteService({ groupId })
       if (res.error) {
         setError(res.error)
+      } else if (res.inviteUrl) {
+        setInviteUrl(res.inviteUrl)
       } else if (res.code) {
-        const origin = typeof window !== 'undefined' ? window.location.origin : ''
+        const origin = typeof window !== 'undefined' && window.location.origin
+          ? window.location.origin
+          : ''
         setInviteUrl(`${origin}/invite/${res.code}`)
       }
     })
